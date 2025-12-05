@@ -26,17 +26,31 @@ Follow these steps to set up and run the project locally:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/HimanshuKabra01/<repo-name>
-cd <repo-name>
+git clone https://github.com/HimanshuKabra01/SuPrazo
+cd SuPrazo
 ```
 ### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-### 3. Start the server
+### 3. Edit the server.js file
+#### Add the following code
+```bash
+  app.listen(PORT, () => {
+    console.log(`Server is running on ${PORT}`)
+  })
+```
+
+### 4. Create .env file 
+#### Content:
+```bash
+MONGO_URI=mongodb+srv://celestialrage:Hkaba@cluster0.vj6bmla.mongodb.net/?appName=Cluster0
+```
+
+### 5. Start the server
 ```bash
 npm start
 ```
 
-### 4. Execute index.html
+### 6. Execute index.html
