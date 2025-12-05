@@ -29,6 +29,7 @@ Follow these steps to set up and run the project locally:
 git clone https://github.com/HimanshuKabra01/SuPrazo
 cd SuPrazo
 ```
+
 ### 2. Install Dependencies
 ```bash
 npm install
@@ -48,9 +49,15 @@ npm install
 MONGO_URI=mongodb+srv://celestialrage:Hkaba@cluster0.vj6bmla.mongodb.net/?appName=Cluster0
 ```
 
-### 5. Start the server
+### 5. Edit the index.html file
+#### Replace line 89 with following line
+```bash
+const API_URL = 'http://localhost:5000/api/tasks';
+```
+
+### 6. Start the server
 ```bash
 npm start
 ```
 
-### 6. Execute index.html
+### 7. Execute index.html
