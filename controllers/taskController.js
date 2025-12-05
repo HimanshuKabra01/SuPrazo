@@ -1,5 +1,6 @@
 const TaskModel = require('../models/taskModel');
 
+//gets all tasks
 const getTasks = async (req, res) => {
   try {
     const tasks = await TaskModel.findAll();
@@ -9,6 +10,7 @@ const getTasks = async (req, res) => {
   }
 }
 
+//get specific task
 const getTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -23,6 +25,7 @@ const getTask = async (req, res) => {
   }
 }
 
+//creates a new Task
 const createTask = async (req, res) => {
   try {
     const { title, description } = req.body;
@@ -38,6 +41,7 @@ const createTask = async (req, res) => {
   }
 }
 
+//update the state of a task
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -53,6 +57,7 @@ const updateTask = async (req, res) => {
   }
 }
 
+//deletes a task
 const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
