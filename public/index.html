@@ -3,35 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager API Tester</title>
+    <title>Task Manager</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f4f4f9; }
-        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1; }
-        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #218838; }
-        ul { list-style: none; padding: 0; }
-        li { background: #fff; border-bottom: 1px solid #eee; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        li:last-child { border-bottom: none; }
-        .delete-btn { background: #dc3545; padding: 5px 10px; font-size: 0.8rem; margin-left: 10px; }
-        .delete-btn:hover { background: #c82333; }
-        .meta { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 10px;
+        }
+        h1 {
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+        .input-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        input, button {
+            padding: 5px;
+            border: 1px solid #000;
+        }
+        input {
+            flex: 1;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            border: 1px solid #000;
+            margin-top: 15px;
+        }
+        li {
+            padding: 8px;
+            border-bottom: 1px dashed #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            cursor: pointer;
+        }
+        li:last-child {
+            border-bottom: none;
+        }
+        li:hover:not(.empty-list) {
+            background-color: #eee;
+        }
+        li.completed strong {
+            text-decoration: line-through;
+            color: #666;
+        }
+        .task-info {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .meta {
+            font-size: 0.8em;
+            color: #333;
+            margin-top: 3px;
+        }
+        .delete-btn {
+            background: #ffaaaa;
+            color: #000;
+            font-size: 0.8em;
+            margin-left: 10px;
+            padding: 4px 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Task Manager</h1>
+        <h1>Task List</h1>
         
         <div class="input-group">
-            <input type="text" id="taskTitle" placeholder="Enter task title..." />
-            <input type="text" id="taskDesc" placeholder="Description (optional)..." />
-            <button id="addTaskButton">Add Task</button>
+            <input type="text" id="taskTitle" placeholder="Task Name" />
+            <input type="text" id="taskDesc" placeholder="Details/Tags" />
+            <button id="addTaskButton">Add</button>
         </div>
 
         <ul id="taskList">
-            <li>Loading tasks...</li>
+            <li class="empty-list" style="justify-content:center;">Loading...</li>
         </ul>
     </div>
 
@@ -48,7 +98,7 @@
             } catch (error) {
                 console.error('Error fetching tasks:', error);
                 const list = document.getElementById('taskList');
-                list.innerHTML = `<li style="justify-content:center; color:#dc3545;">Failed to load tasks. Check your server.</li>`;
+                list.innerHTML = '<li class="empty-list" style="justify-content:center; color:red;">Connection Error.</li>';
             }
         }
 
@@ -56,7 +106,7 @@
             const titleInput = document.getElementById('taskTitle');
             const descInput = document.getElementById('taskDesc');
             
-            if (!titleInput.value) return alert('Title is required');
+            if (!titleInput.value.trim()) return alert('Task Name is required.');
 
             try {
                 const response = await fetch(API_URL, {
@@ -73,13 +123,13 @@
                 descInput.value = '';
                 fetchTasks();
             } catch (error) {
-                console.error('Error creating task:', error);
-                alert('Failed to create task.');
+                console.error('Error submitting task:', error);
+                alert('Submission failed.');
             }
         }
         
         async function deleteTask(id) {
-            if(!confirm('Delete this task?')) return;
+            if(!confirm('Delete task?')) return;
             
             try {
                 const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
@@ -87,7 +137,21 @@
                 fetchTasks();
             } catch (error) {
                 console.error('Error deleting task:', error);
-                alert('Failed to delete task.');
+                alert('Deletion failed.');
+            }
+        }
+        
+        async function toggleTaskCompletion(id, currentStatus) {
+            try {
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ completed: !currentStatus })
+                });
+                fetchTasks();
+            } catch (error) {
+                console.error('Error updating task:', error);
+                alert('Status update failed.');
             }
         }
 
@@ -96,28 +160,35 @@
             list.innerHTML = '';
             
             if (tasks.length === 0) {
-                list.innerHTML = '<li style="justify-content:center; color:#888;">No tasks found. Add one!</li>';
+                list.innerHTML = '<li class="empty-list" style="justify-content:center;">No tasks found.</li>';
                 return;
             }
 
-            tasks.forEach(task => {
+            tasks.forEach((task, index) => {
                 const item = document.createElement('li');
-                item.innerHTML = `
-                    <div>
-                        <strong>${task.title}</strong>
-                        <div class="meta">${task.description || 'No description'}</div>
-                    </div>
-                `;
                 
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'delete-btn';
-                deleteButton.textContent = 'Delete';
+                if (task.completed) {
+                    item.classList.add('completed');
+                }
                 
-                deleteButton.addEventListener('click', () => {
-                    deleteTask(task.id);
+                item.addEventListener('click', () => {
+                    toggleTaskCompletion(task._id, task.completed);
                 });
 
-                item.appendChild(deleteButton);
+                item.innerHTML = `
+                    <div class="task-info">
+                        <strong>${task.title || 'Untitled'}</strong>
+                        <div class="meta">${task.description || 'No details'}</div>
+                    </div>
+                    <button class="delete-btn" data-id="${task._id}">X</button>
+                `;
+                
+                const deleteButton = item.querySelector('.delete-btn');
+                deleteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTask(e.currentTarget.dataset.id);
+                });
+
                 list.appendChild(item);
             });
         }
