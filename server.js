@@ -28,10 +28,4 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Endpoint not found' });
 });
 
-if(require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server is running on ${PORT}`)
-  })
-}
-
 module.exports = app;
